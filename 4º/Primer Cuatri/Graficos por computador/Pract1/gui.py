@@ -16,6 +16,9 @@ class LineDrawingGUI(ttk.Frame):
         self.parent.geometry("900x700")
         self.start = None
         self.end = None
+        self.last_start = None   # NUEVO
+        self.last_end = None     # NUEVO
+
 
         # Selección de algoritmo
         algos = [
@@ -25,18 +28,18 @@ class LineDrawingGUI(ttk.Frame):
             "bresenham_real",
             "bresenham_integer"
         ]
+
         ttk.Label(self, text="Algoritmo:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
         self.algo_var = tk.StringVar(value=algos[0])
         combo = ttk.Combobox(self, textvariable=self.algo_var, values=algos, state="readonly")
-        combo.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        combo.grid(row=0, column=1, padx=5, pady=5, sticky="e")
 
-        # Botones de control
-        ttk.Button(self, text="Limpiar", command=self.clear).grid(row=0, column=2, padx=5)
-        ttk.Button(self, text="Coordenadas", command=self.show_coords).grid(row=0, column=3, padx=5)
+        ttk.Button(self, text="Limpiar", command=self.clear).grid(row=0, column=2, padx=5, sticky="e")
+        ttk.Button(self, text="Coordenadas", command=self.show_coords).grid(row=0, column=3, padx=5, sticky="e")
 
         # Canvas de dibujo
-        self.canvas = tk.Canvas(self, bg="white", width=800, height=500, bd=2, relief="sunken")
-        self.canvas.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
+        self.canvas = tk.Canvas(self, bg="white", width=600, height=600, bd=2, relief="sunken")
+        self.canvas.grid(row=1, column=0, columnspan=4, padx=10, pady=10, sticky="w")
         self.canvas.bind("<Button-1>", self.on_click)
 
         # Panel de información
@@ -46,10 +49,20 @@ class LineDrawingGUI(ttk.Frame):
 
         self.grid()
 
+    def clear(self):
+        self.canvas.delete("all")
+        self.info.delete("1.0", "end")
+        self.start = None
+        self.end = None
+        self.last_start = None     # Borra las definitivas también
+        self.last_end = None
+        self.info.insert("end", "Canvas limpio. Empieza de nuevo.\n")
+
     def on_click(self, event):
         x, y = event.x, event.y
         if self.start is None:
             self.start = (x, y)
+            self.end = None
             self.canvas.create_oval(x-3, y-3, x+3, y+3, fill="green")
             self.info.insert("end", f"Inicio: {self.start}\n")
         else:
@@ -61,16 +74,22 @@ class LineDrawingGUI(ttk.Frame):
             for px, py in points:
                 self.canvas.create_rectangle(px, py, px+1, py+1, fill="blue", outline="blue")
             self.info.insert("end", f"{algo}: {len(points)} puntos\n\n")
-            # Preparar para nuevo
+            # Guarda como "última línea" antes de resetear para la siguiente
+            self.last_start = self.start
+            self.last_end = self.end
             self.start = None
             self.end = None
 
-    def clear(self):
-        self.canvas.delete("all")
-        self.info.delete("1.0", "end")
-        self.start = self.end = None
-        self.info.insert("end", "Canvas limpio. Empieza de nuevo.\n")
-
     def show_coords(self):
-        msg = f"Inicio: {self.start}\nFin: {self.end}"
+        if self.start is not None and self.end is None:
+            # Solo se ha dado el primer click de una nueva línea
+            msg = f"Inicio: {self.start}\nFin: None"
+        elif self.last_start is not None and self.last_end is not None:
+            # Última línea completa
+            msg = f"Inicio: {self.last_start}\nFin: {self.last_end}"
+        else:
+            # Acabas de limpiar o nunca has hecho una línea
+            msg = "Inicio: None\nFin: None"
         messagebox.showinfo("Coordenadas actuales", msg)
+
+        
