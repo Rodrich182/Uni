@@ -1,14 +1,8 @@
-# archivo: gui.py
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 class LineDrawingGUI(ttk.Frame):
     def __init__(self, parent, draw_callback):
-        """
-        parent: ventana raíz de Tk
-        draw_callback: función que recibe los dos puntos y el nombre de algoritmo
-        """
         super().__init__(parent)
         self.parent = parent
         self.draw_callback = draw_callback
@@ -16,11 +10,9 @@ class LineDrawingGUI(ttk.Frame):
         self.parent.geometry("900x700")
         self.start = None
         self.end = None
-        self.last_start = None   # NUEVO
-        self.last_end = None     # NUEVO
+        self.last_start = None
+        self.last_end = None
 
-
-        # Selección de algoritmo
         algos = [
             "slope_intercept_basic",
             "slope_intercept_modified",
@@ -29,22 +21,26 @@ class LineDrawingGUI(ttk.Frame):
             "bresenham_integer"
         ]
 
-        ttk.Label(self, text="Algoritmo:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.algo_var = tk.StringVar(value=algos[0])
-        combo = ttk.Combobox(self, textvariable=self.algo_var, values=algos, state="readonly")
-        combo.grid(row=0, column=1, padx=5, pady=5, sticky="e")
-
-        ttk.Button(self, text="Limpiar", command=self.clear).grid(row=0, column=2, padx=5, sticky="e")
-        ttk.Button(self, text="Coordenadas", command=self.show_coords).grid(row=0, column=3, padx=5, sticky="e")
-
-        # Canvas de dibujo
-        self.canvas = tk.Canvas(self, bg="white", width=600, height=600, bd=2, relief="sunken")
-        self.canvas.grid(row=1, column=0, columnspan=4, padx=10, pady=10, sticky="w")
+        # Canvas de dibujo a la izquierda
+        self.canvas = tk.Canvas(self, bg="white", width=500, height=500, bd=2, relief="sunken")
+        self.canvas.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
         self.canvas.bind("<Button-1>", self.on_click)
 
-        # Panel de información
-        self.info = tk.Text(self, height=8, width=100)
-        self.info.grid(row=2, column=0, columnspan=4, padx=10, pady=5)
+        # --- Panel de controles a la derecha (vertical) ---
+        controles = ttk.Frame(self)
+        controles.grid(row=0, column=1, padx=20, pady=10, sticky="n")
+        
+        # Label y selector en la misma fila del panel de controles
+        ttk.Label(controles, text="Algoritmo:").grid(row=0, column=0, padx=(0,5), pady=5, sticky="e")
+        self.algo_var = tk.StringVar(value=algos[0])
+        ttk.Combobox(controles, textvariable=self.algo_var, values=algos, state="readonly").grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        # Botones ambos abajo
+        ttk.Button(controles, text="Limpiar", command=self.clear).grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
+        ttk.Button(controles, text="Coordenadas", command=self.show_coords).grid(row=2, column=0, columnspan=2, pady=5, sticky="ew")
+
+        # Panel de información abajo (ocupa dos columnas)
+        self.info = tk.Text(self, height=10, width=100)
+        self.info.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
         self.info.insert("end", "1) Clic: punto inicial\n2) Clic: punto final\n")
 
         self.grid()
@@ -54,7 +50,7 @@ class LineDrawingGUI(ttk.Frame):
         self.info.delete("1.0", "end")
         self.start = None
         self.end = None
-        self.last_start = None     # Borra las definitivas también
+        self.last_start = None
         self.last_end = None
         self.info.insert("end", "Canvas limpio. Empieza de nuevo.\n")
 
@@ -74,7 +70,6 @@ class LineDrawingGUI(ttk.Frame):
             for px, py in points:
                 self.canvas.create_rectangle(px, py, px+1, py+1, fill="blue", outline="blue")
             self.info.insert("end", f"{algo}: {len(points)} puntos\n\n")
-            # Guarda como "última línea" antes de resetear para la siguiente
             self.last_start = self.start
             self.last_end = self.end
             self.start = None
@@ -82,14 +77,9 @@ class LineDrawingGUI(ttk.Frame):
 
     def show_coords(self):
         if self.start is not None and self.end is None:
-            # Solo se ha dado el primer click de una nueva línea
             msg = f"Inicio: {self.start}\nFin: None"
         elif self.last_start is not None and self.last_end is not None:
-            # Última línea completa
             msg = f"Inicio: {self.last_start}\nFin: {self.last_end}"
         else:
-            # Acabas de limpiar o nunca has hecho una línea
             msg = "Inicio: None\nFin: None"
         messagebox.showinfo("Coordenadas actuales", msg)
-
-        
