@@ -1,0 +1,28 @@
+# main_p2.py
+import tkinter as tk
+from gui import LineAndTransformGUI
+
+from slope_intercept_basic import slope_intercept_basic
+from slope_intercept_modified import slope_intercept_modified
+from dda_algorithm import dda_algorithm
+from bresenham_real import bresenham_real
+from bresenham_integer import bresenham_integer
+
+def draw_line(start, end, algo):
+    x1,y1 = start; x2,y2 = end
+    if algo == "slope_intercept_basic":
+        return slope_intercept_basic(x1,y1,x2,y2)
+    if algo == "slope_intercept_modified":
+        return slope_intercept_modified(x1,y1,x2,y2)
+    if algo == "dda_algorithm":
+        return dda_algorithm(x1,y1,x2,y2)
+    if algo == "bresenham_real":
+        return bresenham_real(x1,y1,x2,y2)
+    if algo == "bresenham_integer":
+        return bresenham_integer(x1,y1,x2,y2)
+    return []
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LineAndTransformGUI(root, draw_callback=draw_line)
+    root.mainloop()

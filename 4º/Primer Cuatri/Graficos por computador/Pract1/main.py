@@ -1,5 +1,3 @@
-# archivo: main.py
-
 from gui import LineDrawingGUI
 from slope_intercept_basic import slope_intercept_basic
 from slope_intercept_modified import slope_intercept_modified
