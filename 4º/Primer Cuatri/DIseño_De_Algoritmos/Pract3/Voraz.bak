@@ -1,0 +1,56 @@
+#lang racket
+
+(define (leer-fichero-listas-sin-indice ruta)
+  (call-with-input-file ruta
+    (lambda (in)
+      (let loop ((linea (read-line in 'any))
+                 (acumulador '()))
+        (if (eof-object? linea)
+            (reverse acumulador)
+            (let* ((partes (string-split linea ":"))
+                   (numeros-str (if (> (length partes) 1)
+                                    (cadr partes)
+                                    ""))
+                   (numeros (filter number?
+                                    (map string->number
+                                         (string-split numeros-str))))
+                   (ordenados (sort numeros <)))
+              (loop (read-line in 'any) (cons ordenados acumulador))))))))
+
+(define entrada (leer-fichero-listas-sin-indice "04_dat_01.txt"))
+
+;; utilidades con listas (sin sets)
+(define (miembro? x xs) (and (member x xs) #t))
+(define (union-uniqs a b)
+  (foldl (lambda (x acc) (if (miembro? x acc) acc (cons x acc))) a b))
+(define (diff a b) ;; a \ b
+  (filter (lambda (x) (not (miembro? x b))) a))
+
+(define (todas-habs datos)
+  (foldl (lambda (h acc) (union-uniqs acc h)) '() datos))
+
+(define (nuevas-habs habs-sel cand) (diff cand habs-sel))
+
+(define (elige-mejor datos habs-sel)
+  ;; devuelve el candidato (lista de habilidades) que más aporta; en empate, el primero
+  (let loop ((rest datos) (mejor '()) (mejor-k -1))
+    (cond
+      [(null? rest) mejor]
+      [else
+       (define cand (car rest))
+       (define k (length (nuevas-habs habs-sel cand)))
+       (if (> k mejor-k)
+           (loop (cdr rest) cand k)
+           (loop (cdr rest) mejor mejor-k))])))
+
+(define (Parcial-voraz datos)
+  (let* ((objetivo (todas-habs datos))
+         (n-total (length objetivo)))
+    (let loop ((sel '()) (cubiertas '()))
+      (if (>= (length cubiertas) n-total)
+          (reverse sel)
+          (let* ((cand (elige-mejor datos cubiertas))
+                 (aporta (nuevas-habs cubiertas cand)))
+            (if (null? cand) ;; no hay mejoras posibles
+                (reverse sel)
+                (loop (cons cand sel) (union-uniqs cubiertas aporta))))))))

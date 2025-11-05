@@ -1,0 +1,14 @@
+#lang racket
+;;6) Compara, utilizando datos de entrada generados aleatoriamente, los resultados del algoritmo de tipo
+;; branch and bound con los del algoritmo voraz que has completado en (2).
+;;
+;;Uso estos Comandos:
+;;python 04_cod_10.py 16 80 10
+;;Me tarda poco y tanto Voraz como BnB me dan lo mismo en la mayoria de casos, a que andamos en un caso relativamente sencillo
+;;
+;;python 04_cod_10.py 24 120 12 
+;;Sigue sucediendo como en el caso anterior, aunque si que es mas apreciable la diferencia entre voraz y BnB
+;;
+;;
+;;python 04_cod_10.py 32 137 12
+;;Aqui ya aumenta el numero de casos con diferencias y las propias diferencias se hacen mas grandes.
