@@ -1,12 +1,12 @@
-
 import tkinter as tk
 from tkinter import ttk, messagebox
+
 import dictionary as D
 from .theme import apply_theme
-
 from .practicas.practica1 import Practica1Panel
 from .practicas.practica2 import Practica2Panel
 from .practicas.under_construction import UnderConstructionPanel
+
 
 class LineDrawingGUI(ttk.Frame):
     def __init__(self, parent, draw_callback, algo_keys, default_algo,
@@ -41,26 +41,41 @@ class LineDrawingGUI(ttk.Frame):
         settingsbar = ttk.Frame(self)
         settingsbar.grid(row=1, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
 
-        ttk.Label(settingsbar, text="Algoritmo:").grid(row=0, column=0, padx=(0,5), sticky="e")
+        ttk.Label(settingsbar, text="Algoritmo:").grid(row=0, column=0, padx=(0, 5), sticky="e")
         self.algo_var = tk.StringVar(value=default_algo)
-        algo_combo = ttk.Combobox(settingsbar, textvariable=self.algo_var, values=list(algo_keys), state="readonly", width=24)
+        algo_combo = ttk.Combobox(
+            settingsbar,
+            textvariable=self.algo_var,
+            values=list(algo_keys),
+            state="readonly",
+            width=24
+        )
         algo_combo.grid(row=0, column=1, padx=5, sticky="w")
-        algo_combo.bind("<<ComboboxSelected>>", self._on_algo_change)
+        algo_combo.bind("<<ComboboxSelected>>", self._on_algo_change)  # CAMBIO: evento correcto
 
-        ttk.Label(settingsbar, text="Tema:").grid(row=0, column=2, padx=(20,5), sticky="e")
+        ttk.Label(settingsbar, text="Tema:").grid(row=0, column=2, padx=(20, 5), sticky="e")
         self.theme_var = tk.StringVar(value=D.SETTINGS.get("theme", "light"))
-        theme_combo = ttk.Combobox(settingsbar, textvariable=self.theme_var, values=["light", "dark"], state="readonly", width=10)
+        theme_combo = ttk.Combobox(
+            settingsbar,
+            textvariable=self.theme_var,
+            values=["light", "dark"],
+            state="readonly",
+            width=10
+        )
         theme_combo.grid(row=0, column=3, padx=5, sticky="w")
-        theme_combo.bind("<<ComboboxSelected>>", self._on_theme_change)
+        theme_combo.bind("<<ComboboxSelected>>", self._on_theme_change)  # CAMBIO: evento correcto
 
         # Canvas común
         self.canvas = tk.Canvas(
-            self, bg=self.palette["canvas_bg"],
-            width=self.canvas_size, height=self.canvas_size,
-            bd=2, relief="sunken", highlightthickness=0
+            self,
+            bg=self.palette["canvas_bg"],
+            width=self.canvas_size,
+            height=self.canvas_size,
+            bd=2,
+            relief="sunken",
+            highlightthickness=0
         )
         self.canvas.grid(row=2, column=0, padx=10, pady=10, sticky="nw")
-
         self.width = int(self.canvas["width"])
         self.height = int(self.canvas["height"])
         self.center_x = self.width // 2
@@ -72,8 +87,10 @@ class LineDrawingGUI(ttk.Frame):
         self.current_panel = None
 
         # Info común
-        self.info = tk.Text(self, height=10, width=100, bd=0, highlightthickness=0,
-                            bg=self.palette["text_bg"], fg=self.palette["text_fg"])
+        self.info = tk.Text(
+            self, height=10, width=100, bd=0, highlightthickness=0,
+            bg=self.palette["text_bg"], fg=self.palette["text_fg"]
+        )
         self.info.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
         self.info.insert("end", "Selecciona práctica y dibuja con dos clics o modo manual.\n")
 
@@ -85,8 +102,9 @@ class LineDrawingGUI(ttk.Frame):
         self._rebuild_framebuffer()
         self.draw_axes()
 
-        # Eventos
-        self.canvas.bind("<Button-1>", self.on_click)
+        # Eventos por defecto (P1 usa este binding)
+        self.canvas.bind("<Button-1>", self.on_click)  # CAMBIO: evento correcto
+
         self.grid()
 
         # Inicialización global
@@ -96,25 +114,63 @@ class LineDrawingGUI(ttk.Frame):
         # Carga práctica por defecto
         self.switch_practice(D.SETTINGS.get("practice", D.DEFAULT_PRACTICE))
 
-    # Cambio de práctica: sustituye el panel derecho
+    # ---------- Cambio de práctica ----------
     def switch_practice(self, key):
+        # 0) Actualiza estado global
         D.SETTINGS["practice"] = key
+
+        # 1) Neutraliza cualquier binding previo del canvas
+        try:
+            self.canvas.unbind("<Button-1>")  # CAMBIO: unbind claro del click
+        except Exception:
+            pass
+
+        # 2) Borra overlays de prácticas
+        try:
+            self.canvas.delete("p2_overlay")
+            self.canvas.delete("p1_overlay")
+        except Exception:
+            pass
+
+        # 3) Limpieza general de canvas e info
         self.clear()
+
+        # 4) Desconecta y destruye el panel activo (si lo hay)
+        if self.current_panel is not None:
+            try:
+                self.current_panel.destroy()
+            except Exception:
+                pass
+        self.current_panel = None
+
+        # 5) Limpia contenedor de la derecha
         for w in self.right_container.winfo_children():
-            w.destroy()
+            try:
+                w.destroy()
+            except Exception:
+                pass
+
+        # 6) Crea el nuevo panel y restablece el binding adecuado
         if key == "practica1":
             self.current_panel = Practica1Panel(self.right_container, self)
+            self.canvas.bind("<Button-1>", self.on_click)  # CAMBIO: P1 vuelve a enlazar clic
         elif key == "practica2":
             self.current_panel = Practica2Panel(self.right_container, self)
+            # CAMBIO: P2 se auto-bindea en su __init__ con self.app.canvas.bind(...)
         elif key == "practica3":
             self.current_panel = UnderConstructionPanel(self.right_container, self, "Práctica 3 en construcción")
+            self.canvas.bind("<Button-1>", self.on_click)
         elif key == "practica4":
             self.current_panel = UnderConstructionPanel(self.right_container, self, "Práctica 4 en construcción")
+            self.canvas.bind("<Button-1>", self.on_click)
         else:
             self.current_panel = UnderConstructionPanel(self.right_container, self, "Práctica desconocida")
+            self.canvas.bind("<Button-1>", self.on_click)
+
+        # 7) Monta el panel en el contenedor
         self.current_panel.grid(row=0, column=0, sticky="n")
 
-    # Ajustes globales
+    # ---------- Ajustes globales ----------
     def _on_algo_change(self, _evt=None):
         D.SETTINGS["active_line_algorithm"] = self.algo_var.get()
 
@@ -128,7 +184,7 @@ class LineDrawingGUI(ttk.Frame):
         self.info.configure(bg=self.palette["text_bg"], fg=self.palette["text_fg"])
         self._refresh_image()
 
-    # Conversión y framebuffer
+    # ---------- Conversión y framebuffer ----------
     def screen_to_grid(self, sx, sy):
         k = self.pixel_size_var.get()
         gx = round(sx / k) - self.grid_w // 2
@@ -158,7 +214,7 @@ class LineDrawingGUI(ttk.Frame):
         if 0 <= ix < self.grid_w and 0 <= iy < self.grid_h:
             self.img.put(color or self.palette["line_color"], (ix, iy))
 
-    # API de controles usada por Práctica 1
+    # ---------- API de controles (P1) ----------
     def on_pixel_size_change(self):
         D.SETTINGS["pixel_size"] = self.pixel_size_var.get()
         self._rebuild_framebuffer()
@@ -202,10 +258,14 @@ class LineDrawingGUI(ttk.Frame):
 
     def draw_axes(self):
         self.canvas.delete("axes")
-        self.canvas.create_line(0, self.center_y, self.width, self.center_y,
-                                fill=self.palette["axis_color"], width=1, tags="axes")
-        self.canvas.create_line(self.center_x, 0, self.center_x, self.height,
-                                fill=self.palette["axis_color"], width=1, tags="axes")
+        self.canvas.create_line(
+            0, self.center_y, self.width, self.center_y,
+            fill=self.palette["axis_color"], width=1, tags="axes"
+        )
+        self.canvas.create_line(
+            self.center_x, 0, self.center_x, self.height,
+            fill=self.palette["axis_color"], width=1, tags="axes"
+        )
         self.canvas.tag_raise("axes")
 
     def show_points(self):

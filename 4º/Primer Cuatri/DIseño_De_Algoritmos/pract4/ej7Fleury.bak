@@ -1,0 +1,153 @@
+#lang racket
+
+;; ==========================================================
+;; UTILIDADES BÁSICAS DE GRAFOS
+;; ==========================================================
+
+;; Obtener vecinos (si no existe el nodo, devuelve lista vacía)
+(define (vecinos grafo nodo)
+  (hash-ref grafo nodo '()))
+
+;; Contar el grado de un nodo (número de aristas incidentes)
+(define (grado grafo nodo)
+  (length (vecinos grafo nodo)))
+
+;; Eliminar una arista no dirigida (u -- v)
+;; Usamos 'remove' que quita solo la primera ocurrencia (para multigrafos)
+(define (eliminar-arista grafo u v)
+  (let* ([vecinos-u (vecinos grafo u)]
+         [vecinos-v (vecinos grafo v)]
+         [nuevos-u (remove v vecinos-u)]
+         [nuevos-v (remove u vecinos-v)])
+    (hash-set (hash-set grafo u nuevos-u) v nuevos-v)))
+
+;; Encuentra el nodo adecuado para empezar.
+;; Regla: Si hay nodos con grado impar, DEBES empezar en uno de ellos.
+;; Si no, puedes empezar donde quieras.
+(define (encontrar-nodo-inicial grafo)
+  (define nodos (hash-keys grafo))
+  (define impares (filter (lambda (n) (odd? (grado grafo n))) nodos))
+  (if (null? impares)
+      (first nodos)       ; Todos pares: Circuito (empieza en cualquiera)
+      (first impares)))   ; Hay impares: Camino (empieza en impar)
+
+;; ==========================================================
+;; ALGORITMO DE HIERHOLZER
+;; ==========================================================
+
+;; Traza un circuito/camino voraz hasta quedarse atascado
+(define (trazar-circuito grafo nodo)
+  (let loop ((actual nodo)
+             (g grafo)
+             (camino '()))
+    (let ((ady (vecinos g actual)))
+      (if (null? ady)
+          ;; Si no hay vecinos, terminamos este sub-recorrido
+          (values (reverse (cons actual camino)) g)
+          ;; Si hay vecinos, tomamos el primero y seguimos avanzando
+          (let* ((siguiente (first ady))
+                 (nuevo-g (eliminar-arista g actual siguiente)))
+            (loop siguiente nuevo-g (cons actual camino)))))))
+
+;; Pega los sub-circuitos recursivamente
+(define (expandir camino grafo)
+  (cond
+    [(null? camino) '()]
+    [else
+     (define u (first camino))
+     (define ady (vecinos grafo u))
+     (if (null? ady)
+         ;; Si el nodo no tiene más aristas en el grafo residual, seguimos
+         (cons u (expandir (rest camino) grafo))
+         ;; Si tiene aristas, lanzamos otro tour desde aquí y lo insertamos
+         (let-values (((sub-camino nuevo-g) (trazar-circuito grafo u)))
+           (append (takef camino (lambda (x) (not (eq? x u)))) ; Parte antes de u
+                   (expandir sub-camino nuevo-g)               ; Sub-camino expandido
+                   (expandir (rest camino) nuevo-g))))]))      ; Resto del camino original
+
+;; FUNCIÓN PRINCIPAL HIERHOLZER
+(define (Hierholzer grafo)
+  (define inicio (encontrar-nodo-inicial grafo))
+  (define-values (camino-inicial g-restante) (trazar-circuito grafo inicio))
+  (expandir camino-inicial g-restante))
+
+;; ==========================================================
+;; ALGORITMO DE FLEURY
+;; ==========================================================
+
+;; Cuenta cuántos nodos son alcanzables desde 'inicio' (BFS simple)
+(define (contar-alcanzables grafo inicio)
+  (let loop ((cola (list inicio))
+             (visitados (set)))
+    (if (null? cola)
+        (set-count visitados)
+        (let* ((u (first cola))
+               (resto (rest cola)))
+          (if (set-member? visitados u)
+              (loop resto visitados)
+              (loop (append resto (vecinos grafo u)) (set-add visitados u)))))))
+
+;; Comprueba si la arista u-v es un puente.
+;; Es puente si al quitarla, el número de nodos alcanzables desde u disminuye.
+(define (es-puente? grafo u v)
+  (define n-antes (contar-alcanzables grafo u))
+  (define grafo-sin (eliminar-arista grafo u v))
+  (define n-despues (contar-alcanzables grafo-sin u))
+  (< n-despues n-antes))
+
+;; Busca el mejor vecino para saltar según Fleury
+;; Prefiere aristas que NO sean puentes.
+(define (mejor-vecino grafo u candidatos)
+  (cond
+    [(null? candidatos) #f]
+    [(null? (rest candidatos)) (first candidatos)] ; Si solo hay uno, hay que tomarlo
+    [else
+     ;; Filtramos los que NO son puentes
+     (define no-puentes (filter (lambda (v) (not (es-puente? grafo u v))) candidatos))
+     (if (null? no-puentes)
+         (first candidatos) ; Si todos son puentes, tomamos cualquiera
+         (first no-puentes))]))
+
+;; Lógica recursiva de Fleury
+(define (fleury-rec grafo u camino)
+  (define ady (vecinos grafo u))
+  (if (null? ady)
+      (reverse (cons u camino)) ;; Fin del recorrido
+      (let* ([v (mejor-vecino grafo u ady)]
+             [nuevo-g (eliminar-arista grafo u v)])
+        (fleury-rec nuevo-g v (cons u camino)))))
+
+;; FUNCIÓN PRINCIPAL FLEURY
+(define (Fleury grafo)
+  (define inicio (encontrar-nodo-inicial grafo))
+  (fleury-rec grafo inicio '()))
+
+;; ==========================================================
+;; PRUEBAS Y EJEMPLOS
+;; ==========================================================
+
+;; Grafo del ejemplo (Königsberg modificado del PDF o similar)
+(define G
+  (hash
+   'A '(B)
+   'B '(A C D)
+   'C '(B D)
+   'D '(B C)))
+
+(displayln "--- RESULTADO HIERHOLZER ---")
+(displayln (Hierholzer G))
+
+(displayln "\n--- RESULTADO FLEURY ---")
+(displayln (Fleury G))
+
+;; Ejemplo extra: "Sobre de carta" (Euleriano completo)
+(define Sobre
+  (hash
+   1 '(2 3)
+   2 '(1 3 4 5)
+   3 '(1 2 4 5)
+   4 '(2 3)
+   5 '(2 3)))
+
+(displayln "\n--- PRUEBA CON GRAFO 'SOBRE' (Fleury) ---")
+(displayln (Fleury Sobre))

@@ -13,7 +13,7 @@ LINE_ALGORITHM_KEYS = [
 ]
 
 DEFAULT_LINE_ALGO = "bresenham_integer"
-DEFAULT_THEME = "light"
+DEFAULT_THEME = "light" #puedo poner "dark"
 
 # Nuevo: prácticas
 PRACTICE_KEYS = ["practica1", "practica2", "practica3", "practica4"]

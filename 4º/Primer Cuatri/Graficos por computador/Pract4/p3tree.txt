@@ -1,0 +1,36 @@
+pract2/
+├── __pycache__/
+├── animations/
+│   ├── __pycache__/
+│   ├── gif_export.py
+│   └── runtime.py
+├── gui/
+│   ├── __pycache__/
+│   ├── practicas/
+│   │   ├── __pycache__/
+│   │   ├── practica1.py
+│   │   ├── practica2.py
+│   │   ├── under_construction.py
+│   │   ├── __init__.py
+│   │   └── main_window.py
+│   └── theme.py
+├── LineDrawing/
+│   ├── __pycache__/
+│   ├── __init__.py
+│   ├── bresenham_integer.py
+│   ├── dda_algorithm.py
+│   ├── slope_intercept_basic.py
+│   └── slope_intercept_modified.py
+├── transformations/
+│   ├── __pycache__/
+│   ├── compose.py
+│   └── matrices.py
+│── fractals/
+│   ├── __init__.py
+│   ├── recursive.py       # Sierpinski / Koch
+│   ├── complex_sets.py    # Mandelbrot / Julia
+│   └── ifs.py             # Barnsley / Sierpinski IFS
+│
+├── dictionary.py
+├── main.py
+└── Pract1.zip
