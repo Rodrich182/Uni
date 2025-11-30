@@ -1,28 +1,34 @@
-# main_p2.py
+
 import tkinter as tk
-from gui import LineAndTransformGUI
 
-from slope_intercept_basic import slope_intercept_basic
-from slope_intercept_modified import slope_intercept_modified
-from dda_algorithm import dda_algorithm
-from bresenham_real import bresenham_real
-from bresenham_integer import bresenham_integer
+import dictionary as D
+from LineDrawing import ALGO_REGISTRY
+from gui import LineDrawingGUI
 
-def draw_line(start, end, algo):
-    x1,y1 = start; x2,y2 = end
-    if algo == "slope_intercept_basic":
-        return slope_intercept_basic(x1,y1,x2,y2)
-    if algo == "slope_intercept_modified":
-        return slope_intercept_modified(x1,y1,x2,y2)
-    if algo == "dda_algorithm":
-        return dda_algorithm(x1,y1,x2,y2)
-    if algo == "bresenham_real":
-        return bresenham_real(x1,y1,x2,y2)
-    if algo == "bresenham_integer":
-        return bresenham_integer(x1,y1,x2,y2)
-    return []
+def draw_line(start, end, algo_name=None):
+    """
+    start/end: tuplas (x, y) en coordenadas lógicas
+    algo_name: clave opcional; si no se pasa se usa el global activo
+    """
+    x1, y1 = start
+    x2, y2 = end
+
+    key = algo_name or D.SETTINGS.get("active_line_algorithm", D.DEFAULT_LINE_ALGO)
+    func = ALGO_REGISTRY.get(key)
+    if not func:
+        return []
+    return func(x1, y1, x2, y2)
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = LineAndTransformGUI(root, draw_callback=draw_line)
+    app = LineDrawingGUI(
+        root,
+        draw_callback=draw_line,
+        algo_keys=D.LINE_ALGORITHM_KEYS,
+        default_algo=D.SETTINGS["active_line_algorithm"],
+        canvas_size=D.CANVAS_SIZE,
+        default_pixel_size=D.DEFAULT_PIXEL_SIZE,
+        title=D.APP_TITLE,
+        win_size=D.WINDOW_SIZE,
+    )
     root.mainloop()

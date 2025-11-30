@@ -34,6 +34,7 @@ class LineDrawingGUI(ttk.Frame):
             "slope_intercept_modified",
             "dda_algorithm",
             "bresenham_integer",
+            "slope_intercept_basic"
         ]
 
 
@@ -94,12 +95,7 @@ class LineDrawingGUI(ttk.Frame):
         self.info.insert("end", "1) Clic: punto inicial\n2) Clic: punto final\n")
 
 
-
-
-
-
-
-        # Framebuffer lógico (imagen) + ejes
+       
         self.img = None
         self.img_zoom = None
         self.img_id = None
