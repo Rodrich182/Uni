@@ -135,12 +135,14 @@ class Practica2Panel(ttk.Frame):
 
     # ---------- Entradas y figura ----------
     def _on_mode_change(self):
+        """Maneja el cambio de modo de entrada."""
         if self.mode_var.get() == "dibujo":
             self.txt.configure(state="disabled")
         else:
             self.txt.configure(state="normal")
 
     def _on_canvas_click(self, event):
+        """Maneja el clic en el canvas para añadir vértices en modo dibujo."""
         if self.mode_var.get() != "dibujo":
             return
         gx, gy = self.app.screen_to_grid(event.x, event.y)
@@ -148,6 +150,7 @@ class Practica2Panel(ttk.Frame):
         self._redraw_figure()
 
     def load_from_text(self):
+        """Carga la figura desde el área de texto según el modo seleccionado."""
         try:
             text = self.txt.get("1.0", "end").strip()
             if not text:
@@ -202,11 +205,13 @@ class Practica2Panel(ttk.Frame):
             messagebox.showerror("Error de entrada", str(e))
 
     def close_shape(self):
+        """Cierra la figura conectando el último vértice con el primero."""
         if len(self.vertices) >= 3:
             self.closed = True
             self._redraw_figure()
 
     def clear_shape(self):
+        """Limpia la figura actual."""
         self.vertices.clear()
         self.closed = False
         self.app.canvas.delete(self._overlay_tag)
@@ -214,6 +219,7 @@ class Practica2Panel(ttk.Frame):
 
     # ---------- Transformaciones ----------
     def _collect_params(self):
+        """Recopila los parámetros de transformación desde la UI."""
         return {
             "tx": self.tx.get(), "ty": self.ty.get(),
             "rot": self.rot.get(),
@@ -225,6 +231,7 @@ class Practica2Panel(ttk.Frame):
         }
 
     def apply_changes(self):
+        """Aplica las transformaciones a la figura actual."""
         if not self.vertices:
             messagebox.showwarning("Figura vacía", "Primero crea o carga una figura")
             return
@@ -235,6 +242,7 @@ class Practica2Panel(ttk.Frame):
         self.app.info.insert("end", f"Aplicadas {len(seq)} transformaciones.\n")
 
     def make_gif(self):
+        """Genera una animación GIF de las transformaciones aplicadas."""
         if not self.vertices:
             messagebox.showwarning("Figura vacía", "Primero crea o carga una figura")
             return
@@ -271,6 +279,7 @@ class Practica2Panel(ttk.Frame):
 
     # ---------- Dibujo en canvas ----------
     def _redraw_figure(self):
+        """Redibuja la figura actual en el canvas."""
         # Limpiar framebuffer y ejes
         self.app._rebuild_framebuffer()
         self.app.canvas.delete("axes")
@@ -379,6 +388,7 @@ class Practica2Panel(ttk.Frame):
 
     # ---------- Animación en canvas ----------
     def animate_and_apply(self, steps_per_op=20, per_effect_ms=1000):
+        """Anima las transformaciones en el canvas y aplica el estado final."""
         if not self.vertices:
             messagebox.showwarning("Figura vacía", "Primero crea o carga una figura"); return
         seq = build_matrix_sequence(self._collect_params())
@@ -389,6 +399,7 @@ class Practica2Panel(ttk.Frame):
         interval = max(1, per_effect_ms // steps_per_op)
 
         def draw_frame(i=0):
+            """Dibuja el frame i-ésimo de la animación."""
             if i >= len(frames):
                 # fija el estado final
                 self.vertices = [(int(round(x)), int(round(y))) for (x, y) in frames[-1]] if frames else self.vertices
@@ -416,6 +427,7 @@ class Practica2Panel(ttk.Frame):
         draw_frame()
     # ---------- Limpieza segura ----------
     def destroy(self):
+        """Limpia bindings y overlays al destruir el panel."""
         try:
             c = getattr(self.app, "canvas", None)
             if c is not None and c.winfo_exists():

@@ -24,7 +24,7 @@ class LineDrawingGUI(ttk.Frame):
         self.parent.title(title)
         self.parent.geometry(win_size)
 
-        # Estado
+        # Estado del dibujo
         self.points = []
         self.canvas_size = canvas_size
         self.start = None
@@ -43,6 +43,7 @@ class LineDrawingGUI(ttk.Frame):
         settingsbar = ttk.Frame(self)
         settingsbar.grid(row=1, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
 
+        # Selector de algoritmo de línea
         ttk.Label(settingsbar, text="Algoritmo:").grid(row=0, column=0, padx=(0, 5), sticky="e")
         self.algo_var = tk.StringVar(value=default_algo)
         algo_combo = ttk.Combobox(
@@ -55,6 +56,7 @@ class LineDrawingGUI(ttk.Frame):
         algo_combo.grid(row=0, column=1, padx=5, sticky="w")
         algo_combo.bind("<<ComboboxSelected>>", self._on_algo_change)  # CAMBIO: evento correcto
 
+        # Selector de tema
         ttk.Label(settingsbar, text="Tema:").grid(row=0, column=2, padx=(20, 5), sticky="e")
         self.theme_var = tk.StringVar(value=D.SETTINGS.get("theme", "light"))
         theme_combo = ttk.Combobox(
@@ -77,6 +79,7 @@ class LineDrawingGUI(ttk.Frame):
             relief="sunken",
             highlightthickness=0
         )
+        
         self.canvas.grid(row=2, column=0, padx=10, pady=10, sticky="nw")
         self.width = int(self.canvas["width"])
         self.height = int(self.canvas["height"])
@@ -179,7 +182,9 @@ class LineDrawingGUI(ttk.Frame):
     def _on_algo_change(self, _evt=None):
         D.SETTINGS["active_line_algorithm"] = self.algo_var.get()
 
+    # ---------- Tema ----------
     def _on_theme_change(self, _evt=None):
+        """Cambia el tema de la aplicación."""
         mode = self.theme_var.get()
         D.SETTINGS["theme"] = mode
         self.palette = apply_theme(self.parent, mode)
@@ -191,12 +196,15 @@ class LineDrawingGUI(ttk.Frame):
 
     # ---------- Conversión y framebuffer ----------
     def screen_to_grid(self, sx, sy):
+        """Convierte coordenadas de píxeles de pantalla a coordenadas lógicas de grilla."""
         k = self.pixel_size_var.get()
         gx = round(sx / k) - self.grid_w // 2
         gy = self.grid_h // 2 - round(sy / k)
         return gx, gy
 
+    # ---------- Framebuffer ----------
     def _rebuild_framebuffer(self):
+        """Crea una nueva imagen interna según el tamaño de píxel actual."""
         k = self.pixel_size_var.get()
         self.grid_w = max(1, self.canvas_size // k)
         self.grid_h = max(1, self.canvas_size // k)
@@ -209,11 +217,13 @@ class LineDrawingGUI(ttk.Frame):
         self.canvas.tag_lower(self.img_id)
 
     def _refresh_image(self):
+        """Actualiza la imagen mostrada en el canvas según la imagen interna."""
         k = self.pixel_size_var.get()
         self.img_zoom = self.img.zoom(k)
         self.canvas.itemconfig(self.img_id, image=self.img_zoom)
 
     def _put_pixel(self, gx, gy, color=None):
+        """Pone un píxel en coordenadas de grilla (lógicas)."""
         ix = gx + self.grid_w // 2
         iy = self.grid_h // 2 - gy
         if 0 <= ix < self.grid_w and 0 <= iy < self.grid_h:
@@ -221,12 +231,14 @@ class LineDrawingGUI(ttk.Frame):
 
     # ---------- API de controles (P1) ----------
     def on_pixel_size_change(self):
+        """Cambia el tamaño de píxel del framebuffer y lo reconstruye."""
         D.SETTINGS["pixel_size"] = self.pixel_size_var.get()
         self._rebuild_framebuffer()
         self.canvas.delete("axes")
         self.draw_axes()
 
     def clear(self):
+        """Limpia el canvas y resetea el estado de dibujo."""
         self.start = self.end = None
         self.last_start = self.last_end = None
         self.info.delete("1.0", "end")
@@ -236,6 +248,7 @@ class LineDrawingGUI(ttk.Frame):
         self.info.insert("end", "Canvas limpio. Empieza de nuevo.\n")
 
     def on_click(self, event):
+        """Maneja el evento de clic en el canvas para definir puntos."""
         gx, gy = self.screen_to_grid(event.x, event.y)
         if self.start is None:
             self.start = (gx, gy)
@@ -253,6 +266,7 @@ class LineDrawingGUI(ttk.Frame):
             self.start = self.end = None
 
     def show_coords(self):
+        """Muestra las coordenadas actuales de inicio y fin."""
         if self.start is not None and self.end is None:
             msg = f"Inicio: {self.start}\nFin: None"
         elif self.last_start is not None and self.last_end is not None:
@@ -262,6 +276,7 @@ class LineDrawingGUI(ttk.Frame):
         messagebox.showinfo("Coordenadas actuales", msg)
 
     def draw_axes(self):
+        """Dibuja los ejes X e Y en el canvas."""
         self.canvas.delete("axes")
         self.canvas.create_line(
             0, self.center_y, self.width, self.center_y,
@@ -274,6 +289,7 @@ class LineDrawingGUI(ttk.Frame):
         self.canvas.tag_raise("axes")
 
     def show_points(self):
+        """Muestra las coordenadas de los puntos de la última línea dibujada."""
         if self.last_start is not None and self.last_end is not None:
             msg = "\n".join(f"{p}" for p in self.points)
         else:
@@ -281,6 +297,7 @@ class LineDrawingGUI(ttk.Frame):
         messagebox.showinfo("Coordenadas de la última línea", msg)
 
     def dibujar_manual(self):
+        """Dibuja una línea según las coordenadas manuales introducidas."""
         try:
             x1 = int(self.entry_x1.get()); y1 = int(self.entry_y1.get())
             x2 = int(self.entry_x2.get()); y2 = int(self.entry_y2.get())

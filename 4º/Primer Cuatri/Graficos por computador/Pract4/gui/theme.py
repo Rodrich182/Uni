@@ -2,6 +2,8 @@
 from tkinter import ttk
 
 def apply_theme(root, mode="light"):
+    """
+    Aplica un tema claro u oscuro a la aplicación Tkinter."""
     style = ttk.Style(root)
     try:
         style.theme_use("clam")

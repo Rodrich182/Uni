@@ -20,6 +20,7 @@ def draw_line(start, end, algo_name=None):
     return func(x1, y1, x2, y2)
 
 if __name__ == "__main__":
+    """This starts the GUI application."""
     root = tk.Tk()
     app = LineDrawingGUI(
         root,

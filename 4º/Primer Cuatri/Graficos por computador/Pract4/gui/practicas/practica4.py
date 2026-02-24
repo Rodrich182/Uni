@@ -114,10 +114,12 @@ class Practica4Panel(ttk.Frame):
             pass
 
     def _current_preset(self):
+        """Devuelve el preset del L-sistema actualmente seleccionado."""
         key = self.system_key.get()
         return PRESETS.get(key)
 
     def _update_info_for_current_system(self):
+        """Actualiza el área de info con la descripción del sistema actual."""
         preset = self._current_preset()
         if not preset:
             return
@@ -145,6 +147,7 @@ class Practica4Panel(ttk.Frame):
     # ------------------------------------------------------------------
 
     def on_draw(self):
+        """Genera y dibuja el L-sistema según la configuración actual."""
         preset = self._current_preset()
         if not preset:
             messagebox.showerror("Error", "L-sistema desconocido.")

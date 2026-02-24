@@ -3,45 +3,48 @@ import math
 from transformations.matrices import T as Tm, R_deg as Rm, S as Sm, shear as ShearM
 
 def mat_mul(A,B):
-    return [
-        [A[0][0]*B[0][0]+A[0][1]*B[1][0]+A[0][2]*B[2][0],
-         A[0][0]*B[0][1]+A[0][1]*B[1][1]+A[0][2]*B[2][1],
-         A[0][0]*B[0][2]+A[0][1]*B[1][2]+A[0][2]*B[2][2]],
-        [A[1][0]*B[0][0]+A[1][1]*B[1][0]+A[1][2]*B[2][0],
-         A[1][0]*B[0][1]+A[1][1]*B[1][1]+A[1][2]*B[2][1],
-         A[1][0]*B[0][2]+A[1][1]*B[1][2]+A[1][2]*B[2][2]],
-        [A[2][0]*B[0][0]+A[2][1]*B[1][0]+A[2][2]*B[2][0],
-         A[2][0]*B[0][1]+A[2][1]*B[1][1]+A[2][2]*B[2][1],
-         A[2][0]*B[0][2]+A[2][1]*B[1][2]+A[2][2]*B[2][2]],
-    ]
+     return [[sum(A[i][k]*B[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
 
 def mat_inv_affine(M):
-    a,b,c = M[0]; d,e,f = M[1]; det = a*e - b*d
-    if det == 0: return [[1,0,0],[0,1,0],[0,0,1]]
-    ai, bi, di, ei = e/det, -b/det, -d/det, a/det
-    ci = -(ai*c + bi*f); fi = -(di*c + ei*f)
-    return [[ai,bi,ci],[di,ei,fi],[0,0,1]]
+    """Inverts a 3x3 affine transformation matrix."""
+    a,b,c = M[0]; d,e,f = M[1]; det = a*e - b*d # determinant
+    if det == 0: 
+        return [[1,0,0],[0,1,0],[0,0,1]]
+    
+    ai, bi, di, ei = e/det, -b/det, -d/det, a/det   # inverse of upper-left 2x2
+    ci = -(ai*c + bi*f); fi = -(di*c + ei*f)        # inverse translation
+    return [[ai,bi,ci],[di,ei,fi],[0,0,1]]          # return inverse matrix
 
 def apply_float(M, pts):
+    """Applies a 3x3 transformation matrix to a list of (x,y) points, using float arithmetic."""
     out = []
     for (x,y) in pts:
-        x2 = M[0][0]*x + M[0][1]*y + M[0][2]
+        x2 = M[0][0]*x + M[0][1]*y + M[0][2]    
         y2 = M[1][0]*x + M[1][1]*y + M[1][2]
         w  = M[2][0]*x + M[2][1]*y + M[2][2]
-        if w: x2/=w; y2/=w
+        if w: x2/=w; y2/=w  
         out.append((x2,y2))
     return out
 
-def reflect_targets_fx(pts):     return [(x,-y) for (x,y) in pts]
-def reflect_targets_fy(pts):     return [(-x,y) for (x,y) in pts]
+def reflect_targets_fx(pts):  
+    """Reflects points through the X axis."""   
+    return [(x,-y) for (x,y) in pts]
+
+def reflect_targets_fy(pts):   
+    """Reflects points through the Y axis."""  
+    return [(-x,y) for (x,y) in pts]
+
 def reflect_targets_ftheta(pts, theta_deg):
+    """Reflects points through the line passing through the origin at angle theta."""
     a = math.radians(theta_deg); nx, ny = math.sin(a), -math.cos(a)
     nlen = (nx*nx + ny*ny)**0.5 or 1.0; nx, ny = nx/nlen, ny/nlen
     out=[]
     for (x,y) in pts:
         d = x*nx + y*ny; out.append((x-2*d*nx, y-2*d*ny))
     return out
+
 def reflect_targets_fabc(pts, A,B,C):
+    """Reflects points through the line Ax + By + C = 0."""
     nlen = (A*A + B*B)**0.5 or 1.0; nx, ny = A/nlen, B/nlen
     out=[]
     for (x,y) in pts:
@@ -49,6 +52,7 @@ def reflect_targets_fabc(pts, A,B,C):
     return out
 
 def abs_list(it, n):
+    """Generates a list of n absolute transformation matrices for the given step."""
     name, a = it["name"], it["args"]
     if name == "T":
         tx,ty=a["tx"],a["ty"];   return [Tm(tx*t/n, ty*t/n) for t in range(1,n+1)]
@@ -61,7 +65,9 @@ def abs_list(it, n):
     return []
 
 def iter_frames_vertices(vertices, seq, steps_per_op):
-    cur = [(float(x), float(y)) for (x,y) in vertices]
+    """Generates frames of transformed vertices according to the sequence of transformations.
+    For reflections, generates direct interpolation between original and target positions."""
+    cur = [(float(x), float(y)) for (x,y) in vertices]  # current vertex positions
     for it in seq:
         name, a = it["name"], it["args"]
         if name in ("Fx","Fy","Fθ","Fabc"):

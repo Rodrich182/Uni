@@ -73,6 +73,7 @@ class Practica3Panel(ttk.Frame):
         frame_rec.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
 
         ttk.Label(frame_rec, text="Tipo:").grid(row=0, column=0, sticky="e")
+        # Tipo de fractal recursivo
         ttk.Combobox(
             frame_rec,
             textvariable=self.recursive_type,
@@ -80,7 +81,7 @@ class Practica3Panel(ttk.Frame):
             state="readonly",
             width=15,
         ).grid(row=0, column=1, sticky="w", padx=3)
-
+        # Nivel de recursión
         ttk.Label(frame_rec, text="Nivel de recursión:").grid(
             row=0, column=2, sticky="e", padx=6
         )
@@ -91,7 +92,7 @@ class Practica3Panel(ttk.Frame):
             textvariable=self.recursive_level,
             width=5,
         ).grid(row=0, column=3, sticky="w")
-
+        # Botón de dibujo
         ttk.Button(
             frame_rec,
             text="Dibujar recursivo",
@@ -101,7 +102,7 @@ class Practica3Panel(ttk.Frame):
         # Mandelbrot
         frame_man = ttk.LabelFrame(self, text="Conjunto de Mandelbrot")
         frame_man.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-
+        # Iteraciones máximas
         ttk.Label(frame_man, text="Iteraciones máximas:").grid(
             row=0, column=0, sticky="e"
         )
@@ -113,27 +114,27 @@ class Practica3Panel(ttk.Frame):
             textvariable=self.mandel_max_iter,
             width=6,
         ).grid(row=0, column=1, sticky="w", padx=3)
-
+        # Botón de dibujo
         ttk.Button(
             frame_man,
             text="Dibujar Mandelbrot",
             command=self.on_draw_mandelbrot,
         ).grid(row=0, column=2, padx=8)
 
-        # Julia
+        # Julia 
         frame_julia = ttk.LabelFrame(self, text="Conjunto de Julia")
         frame_julia.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
-
+        # Parámetros de c
         ttk.Label(frame_julia, text="Re(c):").grid(row=0, column=0, sticky="e")
         ttk.Entry(frame_julia, textvariable=self.julia_cre, width=8).grid(
             row=0, column=1, sticky="w", padx=2
         )
-
+        
         ttk.Label(frame_julia, text="Im(c):").grid(row=0, column=2, sticky="e")
         ttk.Entry(frame_julia, textvariable=self.julia_cim, width=8).grid(
             row=0, column=3, sticky="w", padx=2
         )
-
+        # Iteraciones máximas
         ttk.Label(frame_julia, text="Iter. máx.:").grid(
             row=0, column=4, sticky="e", padx=4
         )
@@ -145,17 +146,17 @@ class Practica3Panel(ttk.Frame):
             textvariable=self.julia_max_iter,
             width=6,
         ).grid(row=0, column=5, sticky="w")
-
+        # Botón de dibujo
         ttk.Button(
             frame_julia,
             text="Dibujar Julia",
             command=self.on_draw_julia,
         ).grid(row=0, column=6, padx=8)
 
-        # IFS
+        # IFS   
         frame_ifs = ttk.LabelFrame(self, text="Fractal con IFS (juego del caos)")
         frame_ifs.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
-
+        # Tipo de IFS
         ttk.Label(frame_ifs, text="Tipo IFS:").grid(row=0, column=0, sticky="e")
         ttk.Combobox(
             frame_ifs,
@@ -164,21 +165,21 @@ class Practica3Panel(ttk.Frame):
             state="readonly",
             width=15,
         ).grid(row=0, column=1, sticky="w", padx=3)
-
+        # Iteraciones
         ttk.Label(frame_ifs, text="Iteraciones:").grid(
             row=0, column=2, sticky="e", padx=4
         )
         ttk.Entry(frame_ifs, textvariable=self.ifs_iter, width=8).grid(
             row=0, column=3, sticky="w", padx=2
         )
-
+        # Descartar primeras
         ttk.Label(frame_ifs, text="Descartar primeras:").grid(
             row=0, column=4, sticky="e", padx=4
         )
         ttk.Entry(frame_ifs, textvariable=self.ifs_skip, width=6).grid(
             row=0, column=5, sticky="w", padx=2
         )
-
+        # Botón de dibujo
         ttk.Button(
             frame_ifs,
             text="Dibujar IFS",
@@ -207,38 +208,39 @@ class Practica3Panel(ttk.Frame):
     # ------------------------------------------------------------------
 
     def on_draw_recursive(self):
+        """Dibuja un fractal recursivo (Sierpinski / Koch) en el canvas"""
         level = self.recursive_level.get()
         ftype = self.recursive_type.get()
 
-        if level < 0:
+        if level < 0:   # nivel inválido
             messagebox.showerror("Error", "El nivel de recursión debe ser >= 0.")
             return
 
-        self._prepare_canvas(
-            f"Dibujando fractal recursivo '{ftype}' con nivel {level}..."
+        self._prepare_canvas(   
+            f"Dibujando fractal recursivo '{ftype}' con nivel {level}..."  
         )
 
-        size = min(self.app.grid_w, self.app.grid_h) // 2
+        size = min(self.app.grid_w, self.app.grid_h) // 2 # tamaño lógico
 
         if ftype == "sierpinski":
-            segs = sierpinski_segments(level, size)
+            segs = sierpinski_segments(level, size) # obtiene segmentos
         elif ftype == "koch":
             length = min(self.app.grid_w, self.app.grid_h) - 4
-            segs = koch_segments(level, length)
+            segs = koch_segments(level, length) # obtiene segmentos
         else:
             messagebox.showerror("Error", f"Tipo recursivo desconocido: {ftype}")
             return
 
-        algo = D.SETTINGS["active_line_algorithm"]
+        algo = D.SETTINGS["active_line_algorithm"]  # algoritmo de línea
 
         for x1, y1, x2, y2 in segs:
             # Asegurar que los algoritmos de línea reciben enteros
-            x1 = int(round(x1))
-            y1 = int(round(y1))
-            x2 = int(round(x2))
+            x1 = int(round(x1))     
+            y1 = int(round(y1)) 
+            x2 = int(round(x2)) 
             y2 = int(round(y2))
 
-            pts = self.app.draw_callback((x1, y1), (x2, y2), algo)
+            pts = self.app.draw_callback((x1, y1), (x2, y2), algo)  # dibuja línea
             for px, py in pts:
                 self.app._put_pixel(px, py)
 
@@ -250,51 +252,53 @@ class Practica3Panel(ttk.Frame):
     # ------------------------------------------------------------------
 
     def on_draw_mandelbrot(self):
-        max_iter = self.mandel_max_iter.get()
-        if max_iter <= 0:
+        """Dibuja el conjunto de Mandelbrot en el canvas"""
+        max_iter = self.mandel_max_iter.get()   
+        if max_iter <= 0:   
             messagebox.showerror("Error", "Las iteraciones deben ser > 0.")
             return
 
-        self._prepare_canvas(
+        self._prepare_canvas(   
             f"Dibujando conjunto de Mandelbrot (iter máx = {max_iter})..."
         )
 
-        w = self.app.grid_w
-        h = self.app.grid_h
-        xmin, xmax = -2.5, 1.5
-        ymin, ymax = -1.5, 1.5
+        w = self.app.grid_w 
+        h = self.app.grid_h 
+        xmin, xmax = -2.5, 1.5  
+        ymin, ymax = -1.5, 1.5  
 
-        pts = mandelbrot_points(w, h, xmin, xmax, ymin, ymax, max_iter)
+        pts = mandelbrot_points(w, h, xmin, xmax, ymin, ymax, max_iter) # obtiene puntos
 
         for gx, gy, n in pts:
-            if n == max_iter:
+            if n == max_iter:   
                 color = "#000000"
             else:
-                shade = int(255 * n / max_iter)
-                color = f"#{shade:02x}{shade:02x}{shade:02x}"
-            self.app._put_pixel(gx, gy, color)
+                shade = int(255 * n / max_iter) 
+                color = f"#{shade:02x}{shade:02x}{shade:02x}"   
+            self.app._put_pixel(gx, gy, color)  
 
-        self.app._refresh_image()
+        self.app._refresh_image()   # actualiza el canvas
 
     # ------------------------------------------------------------------
     # Julia (usa fractals.complex_sets)
     # ------------------------------------------------------------------
 
     def on_draw_julia(self):
-        max_iter = self.julia_max_iter.get()
+        """Dibuja el conjunto de Julia en el canvas"""
+        max_iter = self.julia_max_iter.get()    
         if max_iter <= 0:
             messagebox.showerror("Error", "Las iteraciones deben ser > 0.")
             return
 
-        cre = self.julia_cre.get()
-        cim = self.julia_cim.get()
+        cre = self.julia_cre.get()  
+        cim = self.julia_cim.get()  
         c = complex(cre, cim)
 
         self._prepare_canvas(
             f"Dibujando conjunto de Julia para c = {cre} + {cim}i (iter máx = {max_iter})..."
-        )
+        )   
 
-        w = self.app.grid_w
+        w = self.app.grid_w 
         h = self.app.grid_h
         xmin, xmax = -1.5, 1.5
         ymin, ymax = -1.5, 1.5
@@ -305,17 +309,18 @@ class Practica3Panel(ttk.Frame):
             if n == max_iter:
                 color = "#000000"
             else:
-                shade = int(255 * n / max_iter)
+                shade = int(255 * n / max_iter) 
                 color = f"#{shade:02x}{shade:02x}{shade:02x}"
-            self.app._put_pixel(gx, gy, color)
+            self.app._put_pixel(gx, gy, color)  
 
-        self.app._refresh_image()
+        self.app._refresh_image()   
 
     # ------------------------------------------------------------------
     # IFS (usa fractals.ifs)
     # ------------------------------------------------------------------
 
     def on_draw_ifs(self):
+        """Dibuja un fractal usando IFS en el canvas"""
         ftype = self.ifs_type.get()
         iters = self.ifs_iter.get()
         skip = self.ifs_skip.get()

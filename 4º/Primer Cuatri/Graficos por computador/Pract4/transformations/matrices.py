@@ -3,16 +3,19 @@
 import math
 
 def T(tx, ty):
+    # Traslation matrix
     return [[1, 0, tx],
             [0, 1, ty],
             [0, 0, 1]]
 
 def S(sx, sy):
+    # Scaling matrix
     return [[sx, 0,  0],
             [0,  sy, 0],
             [0,  0,  1]]
 
 def R_deg(theta_deg):
+    # Rotation matrix (angle in degrees)
     a = math.radians(theta_deg)
     c, s = math.cos(a), math.sin(a)
     return [[c, -s, 0],
@@ -20,16 +23,19 @@ def R_deg(theta_deg):
             [0,  0, 1]]
 
 def shear(shx=0.0, shy=0.0):
+    # Shearing matrix
     return [[1,  shx, 0],
             [shy, 1,  0],
             [0,  0,  1]]
 
 def reflect_x():
+    # Reflection about X axis
     return [[1, 0, 0],
             [0,-1, 0],
             [0, 0, 1]]
 
 def reflect_y():
+    # Reflection about Y axis
     return [[-1,0, 0],
             [0, 1, 0],
             [0, 0, 1]]
@@ -52,9 +58,10 @@ def reflect_arbitrary_line(a, b, c):
     return matmul(matmul(T(-tx, -ty), H), T(tx, ty))
 
 def householder(a, b):
+    # Reflexión respecto a línea que pasa por el origen con vector normal (a,b)
     # Householder: Q = I - 2 n n^T, con n normalizado al vector normal (a,b)
     import math
-    norm = math.hypot(a, b)
+    norm = math.hypot(a, b)     
     if norm == 0:
         return identity()
     nx, ny = a/norm, b/norm
@@ -67,6 +74,9 @@ def householder(a, b):
             [q21, q22, 0],
             [0,   0,   1]]
 
+    #this returns the reflexion matrix that implements a reflection through the line ax+by+c=0
+
+#Utility functions
 def identity():
     return [[1,0,0],[0,1,0],[0,0,1]]
 

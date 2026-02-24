@@ -27,9 +27,9 @@ pract2/
 │   └── matrices.py
 │── fractals/
 │   ├── __init__.py
-│   ├── recursive.py       # Sierpinski / Koch
-│   ├── complex_sets.py    # Mandelbrot / Julia
-│   └── ifs.py             # Barnsley / Sierpinski IFS
+│   ├── recursive.py      
+│   ├── complex_sets.py   
+│   └── ifs.py            
 │
 ├── dictionary.py
 ├── main.py

@@ -1,7 +1,7 @@
 
 APP_TITLE = "Visualizador de Algoritmos de Línea"
 WINDOW_SIZE = "900x650"
-CANVAS_SIZE = 600
+CANVAS_SIZE = 1000
 
 DEFAULT_PIXEL_SIZE = 8
 
