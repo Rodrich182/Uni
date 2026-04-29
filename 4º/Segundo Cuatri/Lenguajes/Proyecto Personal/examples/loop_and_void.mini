@@ -1,0 +1,12 @@
+fun show_even(limit: int) -> void {
+    let i: int = 0;
+    while (i < limit) {
+        if (i % 2 == 0) {
+            print i;
+        }
+        i = i + 1;
+    }
+    return;
+}
+
+show_even(7);

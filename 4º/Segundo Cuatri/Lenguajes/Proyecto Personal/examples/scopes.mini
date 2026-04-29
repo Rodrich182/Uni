@@ -1,0 +1,17 @@
+let value: int = 10;
+
+fun add_twice(x: int) -> int {
+    let total: int = x;
+    {
+        let x: int = 7;
+        total = total + x;
+    }
+    return total + value;
+}
+
+print add_twice(3);
+{
+    let value: int = 99;
+    print value;
+}
+print value;
