@@ -1,2 +1,113 @@
-#text
-*.pdfs
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Course material / professor-provided files
+data/
+Doc/
+Docs/
+Documentacion/
+documentacion/
+material*/
+Material*/
+grading/
+solutions/
+solution/
+__MACOSX/
+memoriaPracticas/
+*.pdf
+*.zip
+*.rar
+*.7z
+*.html
+*_files/
+
+# Tests and throwaway attempts
+tests/
+test/
+test_*/
+Test*/
+testquiz*/
+TestQuizz*/
+test*.py
+*_test.py
+prueba*/
+tmp_prof_compare/
+
+# Course guide TeX files that are not submissions
+memoria_practicas*.tex
+*_itinerario_practicas*.tex
+*_guion_practica*.tex
+*_proyecto_final*.tex
+
+# Java / Eclipse
+bin/
+target/
+*.class
+.metadata/
+
+# C / C++ build output
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+a.out
+
+# LaTeX / documents build output
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.run.xml
+*.synctex.gz
+*.toc
+
+# Sphinx / generated docs
+_build/
+build/
+dist/
+*.egg-info/
+.doctrees/
+*.doctree
+*.buildinfo
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+.~undo-tree~
+
+# OS files
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Local scratch files
+tmp/
+temp/
+.tmp/
+*.tmp
